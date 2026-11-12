@@ -1,0 +1,16 @@
+version: '3'
+
+include:
+  - path:
+      - ./hadoop.yaml
+      - ./spark.yaml
+      - ./weather.yaml
+volumes:
+  namenode_data:
+  datanode1_data:
+  datanode2_data:
+  datanode3_data:
+
+networks:
+  hadoop-net:
+    driver: bridge

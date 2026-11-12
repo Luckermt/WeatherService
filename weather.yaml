@@ -1,0 +1,8 @@
+services:
+  weather:
+    container_name: weather
+    build: .
+    ports:
+      - "9090:9090"
+    networks:
+      - hadoop-net

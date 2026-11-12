@@ -1,0 +1,42 @@
+services:
+  spark-master:
+    image: bde2020/spark-master:3.3.0-hadoop3.3
+    container_name: spark-master
+    hostname: spark-master
+    ports:
+      - "8080:8080"    # Spark Master Web UI
+      - "7077:7077"    # Spark Master RPC
+      - "4040:4040"    # Spark Application Web UI
+      - "18080:18080"  # Spark History Server Web UI
+    environment:
+      - ENABLE_INIT_DAEMON=false
+      - SPARK_MODE=master
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+      - HADOOP_CONF_DIR=/etc/hadoop/conf
+      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=hdfs://namenode:8020/spark-logs
+    depends_on:
+      - namenode
+      - resourcemanager
+    volumes:
+      - ./spark-apps:/opt/spark-apps
+      - ./spark-data:/opt/spark-data
+      - ./spark-conf:/spark/conf
+    networks:
+      - hadoop-net
+
+  spark-worker:
+    image: bde2020/spark-worker:3.3.0-hadoop3.3
+    container_name: spark-worker
+    hostname: spark-worker
+    ports:
+      - "8081:8081"
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+    depends_on:
+      - spark-master
+    networks:
+      - hadoop-net

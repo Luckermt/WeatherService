@@ -1,0 +1,94 @@
+services:
+  namenode:
+
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    hostname: namenode
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+      - "8020:8020"
+    environment:
+      - CLUSTER_NAME=docker-cluster
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - HDFS_CONF_dfs_replication=3
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+    networks:
+      - hadoop-net
+
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode1
+    hostname: datanode1
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - HDFS_CONF_dfs_replication=3
+    volumes:
+      - datanode1_data:/hadoop/dfs/data
+    networks:
+      - hadoop-net
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode2
+    hostname: datanode2
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - HDFS_CONF_dfs_replication=3
+    volumes:
+      - datanode2_data:/hadoop/dfs/data
+    networks:
+      - hadoop-net
+
+  datanode3:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode3
+    hostname: datanode3
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - HDFS_CONF_dfs_replication=3
+    volumes:
+      - datanode3_data:/hadoop/dfs/data
+    networks:
+      - hadoop-net
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    hostname: resourcemanager
+    ports:
+      - "8088:8088"
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+    networks:
+      - hadoop-net
+
+  nodemanager:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    hostname: nodemanager
+    environment:
+      - SERVICE_PRECONDITION=resourcemanager:8088
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+    networks:
+      - hadoop-net
+
+  historyserver:
+      image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+      container_name: historyserver
+      hostname: historyserver
+      ports:
+        - "8188:8188"
+      environment:
+        - SERVICE_PRECONDITION=resourcemanager:8088
+        - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+        - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+      networks:
+        - hadoop-net
